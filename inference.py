@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-Clean inference script using the vocabulary helpers.
-Focused on clarity and debuggability.
-Now includes detailed timing measurements and batch inference support.
-OPTIMIZED: Batched similarity computation for vocabulary matching.
-OPTIMIZED: Async GPU->CPU transfers with vocabulary tracking.
+DSRU Inference Script
+
+Required files:
+- model.py: Contains ScaledVectorReasoningEngine class
+- vocabulary_helpers.py: Contains encode_texts, compute_similarities
+- inference_questions.py: Contains TEST_CASES
+- model.pt: Trained model checkpoint
+
+Usage:
+python inference.py --batch 32
 """
 import torch
 import torch.nn.functional as F
@@ -31,7 +36,7 @@ from inference_questions import TEST_CASES
 model_config = {
     'input_dim': 1024,
     'hidden_dim': 8192,
-    'n_layers': 14,
+    'n_layers': 16,
     'dropout': 0.0
 }
 
@@ -113,7 +118,6 @@ def predict_single_with_full_batching(
     model: ScaledVectorReasoningEngine,
     encoder: SentenceTransformer,
     device: str = 'cuda',
-    debug: bool = False
 ) -> Tuple[str, float, Dict[str, float]]:
     """
     Predict label for a single example with true batched encoding of all inputs.
@@ -143,13 +147,6 @@ def predict_single_with_full_batching(
     encode_time = time.perf_counter() - encode_start
     timing['encoding'] = encode_time
     
-    if debug:
-        print(f"\n[DEBUG] Batched encoding - Total texts: {len(all_texts)}")
-        print(f"Task embedding shape: {task_embedding.shape}")
-        print(f"Data embedding shape: {data_embedding.shape}")
-        print(f"Vocab string embedding shape: {vocab_string_embedding.shape}")
-        print(f"Vocab embeddings shape: {vocab_embeddings.shape}")
-    
     # Time model inference
     inference_start = time.perf_counter()
     with torch.no_grad():
@@ -162,9 +159,6 @@ def predict_single_with_full_batching(
     # Time vocabulary matching (GPU computation) - use exact same pattern as batch
     matching_start = time.perf_counter()
     
-    print(f"[SINGLE] vocab_embeddings shape: {vocab_embeddings.shape}")
-    print(f"[SINGLE] predicted_vector shape: {predicted_vector.shape}")
-    
     # Use exact same pattern as batch version - no extra unsqueeze/squeeze operations
     predicted_vector_batched = predicted_vector.unsqueeze(0)  # [1, vector_dim]
     all_similarities = compute_batch_similarities(predicted_vector_batched, vocab_embeddings)
@@ -175,8 +169,6 @@ def predict_single_with_full_batching(
     
     matching_time = time.perf_counter() - matching_start
     timing['vocab_matching'] = matching_time
-    
-    print(f"[SINGLE] vocab_matching time: {matching_time*1000:.2f}ms")
     
     # Time the full async processing latency - from thread creation to result
     async_start = time.perf_counter()
@@ -204,13 +196,6 @@ def predict_single_with_full_batching(
     timing['total'] = encode_time + inference_time + matching_time + total_async_time
     timing['per_example'] = timing['total']  # For single examples, same as total
     
-    if debug:
-        print(f"Best match: '{best_label}' (sim={best_sim_cpu:.4f})")
-        print(f"Full timing - Encoding: {encode_time*1000:.2f}ms, "
-              f"Inference: {inference_time*1000:.2f}ms, "
-              f"Matching: {matching_time*1000:.2f}ms, "
-              f"Async: {total_async_time*1000:.2f}ms")
-    
     return best_label, best_sim_cpu, timing
 
 
@@ -224,7 +209,6 @@ def predict_batch_with_timing(
     device: str = 'cuda',
     vocab_embeddings_cache: Dict[str, torch.Tensor] = None,
     task_embedding_cache: Dict[str, torch.Tensor] = None,
-    debug: bool = False,
     async_transfer: bool = True
 ) -> Tuple[List[str], List[float], Dict[str, float], Optional[Tuple]]:
     """
@@ -242,7 +226,6 @@ def predict_batch_with_timing(
         device: Device to run on
         vocab_embeddings_cache: Cache for vocabulary embeddings
         task_embedding_cache: Cache for task embeddings
-        debug: Whether to print debug info
         async_transfer: If True, return indices for async processing
     
     Returns:
@@ -424,8 +407,13 @@ def run_classification_tests(batch_size: int = 1):
     Args:
         batch_size: Number of examples to process in each batch (1 = no batching)
     """
-    device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-    checkpoint_path = "kept_models/checkpoint_latest.pt"
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    checkpoint_path = "model.pt"
+    
+    # Check if checkpoint exists
+    if not Path(checkpoint_path).exists():
+        print(f"Error: Model checkpoint not found at {checkpoint_path}")
+        return
     
     # Load model and encoder
     print("="*70)
@@ -461,7 +449,7 @@ def run_classification_tests(batch_size: int = 1):
         predict_batch_with_timing(
             warmup_task, warmup_data, warmup_vocab, warmup_vocab_id,
             model, encoder, device,
-            debug=False, async_transfer=False
+            async_transfer=False
         )
     print("Warmup complete.")
     
@@ -524,7 +512,6 @@ def run_classification_tests(batch_size: int = 1):
                 pred_label, pred_sim, timing = predict_single_with_full_batching(
                     task, data, vocabulary,
                     model, encoder, device,
-                    debug=False
                 )
                 
                 predicted_labels = [pred_label]
@@ -536,7 +523,6 @@ def run_classification_tests(batch_size: int = 1):
                     model, encoder, device,
                     vocab_embeddings_cache=vocab_embeddings_cache,
                     task_embedding_cache=task_embedding_cache,
-                    debug=False,
                     async_transfer=True
                 )
                 
@@ -854,56 +840,10 @@ def run_classification_tests(batch_size: int = 1):
     print("="*70)
 
 
-def check_for_selection_bug():
-    """
-    Specifically check for the bug where model selects suboptimal terms.
-    """
-    device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-    checkpoint_path = "checkpoints/checkpoint_latest.pt"
-    
-    print("Checking for term selection bug...")
-    model = load_model(checkpoint_path, device)
-    encoder = SentenceTransformer('BAAI/bge-large-en-v1.5', device=device)
-    
-    # Test case that showed the bug
-    task = "Classify the formality level of this text"
-    data = "The quarterly financial results demonstrate significant improvements."
-    vocabulary = ["Highly formal", "Formal", "Informal", "Very informal"]
-    
-    # Get prediction
-    print(f"\nTask: {task}")
-    print(f"Data: {data}")
-    
-    task_emb = encode_texts([task], encoder, device)
-    data_emb = encode_texts([data], encoder, device)
-    vocab_emb = encode_vocabulary_string(vocabulary, encoder, device)
-    
-    with torch.no_grad():
-        pred_vector = model(task_emb, data_emb, vocab_emb).squeeze()
-    
-    # Check all similarities
-    vocab_embeddings = encode_texts(vocabulary, encoder, device)
-    similarities = compute_similarities(pred_vector, vocab_embeddings)
-    
-    print("\nAll similarities:")
-    for label, sim in zip(vocabulary, similarities):
-        print(f"  '{label}': {sim.item():.6f}")
-    
-    # Find what model would pick
-    best_idx = similarities.argmax().item()
-    print(f"\nModel picks: '{vocabulary[best_idx]}' with similarity {similarities[best_idx].item():.6f}")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run inference with timing measurements')
     parser.add_argument('--batch', type=int, default=1, 
                         help='Batch size for inference (default: 1, no batching)')
-    parser.add_argument('--debug', action='store_true', 
-                        help='Run debug mode to check for selection bug')
-    
+     
     args = parser.parse_args()
-    
-    if args.debug:
-        check_for_selection_bug()
-    else:
-        run_classification_tests(batch_size=args.batch)
+    run_classification_tests(batch_size=args.batch)
