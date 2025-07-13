@@ -1,0 +1,261 @@
+"""
+Test cases for the Direct Semantic Reasoning Engine inference.
+Rewritten with plain language task descriptions for true zero-shot evaluation. All tasks and inputs generated synthetically by Claude.
+"""
+TEST_CASES = [
+    {
+        "name": "Emotion Classification",
+        "task": "What emotion is being expressed?",
+        "vocabulary": ["Anger", "Joy", "Sadness", "Fear", "Neutral"],
+        "examples": [
+            ("I can't believe they gave the promotion to someone else! This is so unfair!", "Anger"),
+            ("Just won the lottery! Best day ever! I'm jumping with excitement!", "Joy"),
+            ("My dog passed away yesterday. I miss him so much.", "Sadness"),
+            ("Oh god, I think someone's following me. My heart is racing and I can't breathe!", "Fear"),
+            ("They canceled my vacation AGAIN! I'm absolutely livid!", "Anger"),
+            ("I can't stop smiling since I heard the news about my promotion!", "Joy"),
+            ("The darkness in my room matches how empty I feel inside.", "Sadness"),
+            ("The test results come back tomorrow... I can't stop shaking.", "Fear"),
+            ("Why do they keep doing this to me?! I've had ENOUGH!", "Anger"),
+            ("The meeting has been rescheduled to 3 PM on Tuesday.", "Neutral"),
+        ]
+    },
+    {
+        "name": "Toxicity Classification",
+        "task": "Is this message toxic, mildly rude, or okay?",
+        "vocabulary": ["Non-toxic", "Toxic", "Mildly toxic"],
+        "examples": [
+            ("Great article! I learned a lot about renewable energy options. Thanks for sharing!", "Non-toxic"),
+            ("While I disagree with your conclusion, I appreciate the thorough research.", "Non-toxic"),
+            ("You're an absolute moron if you believe that garbage. Get educated!", "Toxic"),
+            ("This recipe turned out amazing! My whole family loved it.", "Non-toxic"),
+            ("Your argument has some flaws, but I see where you're coming from.", "Non-toxic"),
+            ("I hope you step on a LEGO every day for the rest of your pathetic life.", "Toxic"),
+            ("While your approach has merit, I think we should consider alternatives.", "Non-toxic"),
+            ("Your presentation style could use some improvement, honestly.", "Mildly toxic"),
+            ("Thanks for clarifying! That makes much more sense now.", "Non-toxic"),
+            ("Anyone who disagrees with this is clearly brain-dead.", "Toxic"),
+        ]
+    },
+    {
+        "name": "Sentiment Classification",
+        "task": "Is this review positive, negative, or neutral?",
+        "vocabulary": ["Positive", "Negative", "Neutral"],
+        "examples": [
+            ("This restaurant has the worst service ever. Food was cold and order was wrong.", "Negative"),
+            ("Absolutely phenomenal experience! Staff went above and beyond. Can't wait to return!", "Positive"),
+            ("The hotel was fine. Nothing special but clean and reasonably priced.", "Neutral"),
+            ("Terrible product. Broke after one day. Complete waste of money!", "Negative"),
+            ("Outstanding customer service! Resolved my issue immediately. Highly recommend!", "Positive"),
+            ("This laptop keeps crashing and customer support is useless. Don't buy!", "Negative"),
+            ("Best purchase I've made all year! Exceeded all my expectations!", "Positive"),
+            ("The product works as described. Nothing more, nothing less.", "Neutral"),
+            ("Shipping was fast but the item arrived damaged. Very disappointed.", "Negative"),
+            ("10/10 would recommend! Life-changing product!", "Positive"),
+        ]
+    },
+    {
+        "name": "Domain Classification",
+        "task": "What field does this text belong to?",
+        "vocabulary": ["Medicine", "Technology", "Finance", "Law", "Biology", "AI", "Chemistry"],
+        "examples": [
+            ("The patient presented with bilateral pneumonia and elevated C-reactive protein levels.", "Medicine"),
+            ("The new API endpoint uses OAuth 2.0 for authentication and returns JSON responses.", "Technology"),
+            ("Pursuant to Section 5(a) of the contract, the defendant failed to meet obligations.", "Law"),
+            ("The company's P/E ratio of 15.2 suggests undervaluation compared to peers.", "Finance"),
+            ("Post-operative complications included wound dehiscence requiring IV antibiotics.", "Medicine"),
+            ("The neural network achieved 94.2% accuracy on the validation set after fine-tuning.", "AI"),
+            ("Mix 2M NaOH solution with the precipitate until pH reaches 7.0.", "Chemistry"),
+            ("The defendant's motion to dismiss was denied by the appellate court.", "Law"),
+            ("DNA sequencing revealed a mutation in the BRCA1 gene.", "Biology"),
+            ("Deploy the microservices using Kubernetes with auto-scaling enabled.", "Technology"),
+        ]
+    },
+    {
+        "name": "Sarcasm Detection",
+        "task": "Is this person being sarcastic or sincere?",
+        "vocabulary": ["sincere", "not sincere"],
+        "examples": [
+            ("Oh wonderful, another meeting that could have been an email. Just what I needed!", "not sincere"),
+            ("Sure, because staying late every Friday is exactly how I love spending weekends.", "not sincere"),
+            ("Thank you so much for your help! I really couldn't have done it without you.", "sincere"),
+            ("Great, my flight is delayed 6 hours. This vacation is off to a perfect start!", "not sincere"),
+            ("That was exactly what I needed - I feel a lot better now.", "sincere"),
+            ("Oh sure, because working weekends is everyone's dream come true.", "not sincere"),
+            ("I genuinely appreciate you taking the time to explain this to me.", "sincere"),
+            ("Wow, another software update that breaks everything. How innovative!", "not sincere"),
+            ("This coffee is exactly what I needed this morning.", "sincere"),
+            ("Nothing says 'fun' like a root canal on a Monday morning!", "not sincere"),
+        ]
+    },
+    {
+        "name": "Scam Detection",
+        "task": "Is this message a scam or legitimate?",
+        "vocabulary": ["scam", "legitimate"],
+        "examples": [
+            ("Congratulations! You've won $1000000! Click here immediately to claim!", "scam"),
+            ("Your package from Amazon has been delivered. Track at amazon.com/orders", "legitimate"),
+            ("URGENT: Your bank account will be closed unless you verify your SSN now!", "scam"),
+            ("Dr. Smith's office confirming your appointment tomorrow at 2 PM. Reply YES to confirm.", "legitimate"),
+            ("You've been selected for a free iPhone 15! Just pay $1 shipping!", "scam"),
+            ("IRS FINAL NOTICE: Pay $2000 in iTunes cards or face immediate arrest!", "scam"),
+            ("Your dentist appointment reminder: Tuesday at 10 AM. Call to reschedule.", "legitimate"),
+            ("Hot singles in your area want to meet YOU! Click here now!", "scam"),
+            ("Your credit card statement is now available online.", "legitimate"),
+            ("You've inherited $10M from a Nigerian prince! Send $500 processing fee.", "scam"),
+        ]
+    },
+    {
+        "name": "Age Appropriateness Classification",
+        "task": "What age group is this content suitable for?",
+        "vocabulary": ["Children (5-10)", "Pre-teen (11-13)", "Teen (14-17)", "Adult (18+)", "All ages"],
+        "examples": [
+            ("The protagonist grapples with existential dread while navigating complex moral dilemmas in a post-apocalyptic hellscape.", "Adult (18+)"),
+            ("Join Bunny and Bear as they learn to share their toys and make new friends!", "Children (5-10)"),
+            ("Sarah discovers she has magical powers on her 13th birthday and must save her school from evil spirits.", "Pre-teen (11-13)"),
+            ("A step-by-step guide to baking chocolate chip cookies with your family.", "All ages"),
+            ("The novel explores themes of addiction, trauma, and redemption through graphic depictions of war.", "Adult (18+)"),
+            ("Tommy the Train teaches colors and numbers in this fun interactive adventure!", "Children (5-10)"),
+            ("Navigate high school drama, first crushes, and finding your identity in this coming-of-age story.", "Teen (14-17)"),
+            ("Learn about the water cycle through simple experiments you can do at home.", "All ages"),
+            ("Detective Martinez investigates a series of gruesome murders linked to occult rituals.", "Adult (18+)"),
+            ("Friendship troubles and school challenges test Maya's confidence in 7th grade.", "Pre-teen (11-13)"),
+        ]
+    },
+    {
+        "name": "Urgency Level Classification",
+        "task": "How urgent is this?",
+        "vocabulary": ["Critical - Immediate", "High - Within hours", "Medium - Within days", "Low - When convenient", "No urgency"],
+        "examples": [
+            ("SYSTEM ALERT: Database server is down. All transactions failing. Production completely halted!", "Critical - Immediate"),
+            ("Please review and approve the Q3 budget proposal by end of week.", "Medium - Within days"),
+            ("FYI - The office printer on floor 3 is running low on toner.", "Low - When convenient"),
+            ("Fire alarm triggered in Building A! Evacuate immediately!", "Critical - Immediate"),
+            ("Client threatening to cancel contract if issue not resolved by tomorrow morning.", "High - Within hours"),
+            ("Would love your feedback on the new logo designs when you have time.", "No urgency"),
+            ("Patient experiencing chest pain and difficulty breathing. Ambulance requested.", "Critical - Immediate"),
+            ("Deadline for project submission is in 3 days. Please finalize your sections.", "Medium - Within days"),
+            ("Coffee machine in break room needs cleaning when someone gets a chance.", "Low - When convenient"),
+            ("Security breach detected! Multiple unauthorized access attempts on main server!", "Critical - Immediate"),
+        ]
+    },
+    {
+        "name": "Privacy Policy Classification",
+        "task": "What part of the privacy policy is this?",
+        "vocabulary": ["First Party Collection/Use", "Third Party Sharing/Collection", "User Choice/Control", "User Access, Edit, & Deletion", "Data Retention", "Data Security", "Policy Change"],
+        "examples": [
+            ("The site collects your contact information for service provision purposes. Collection happens when you explicitly provide information during account creation, and your data is identifiable.", "First Party Collection/Use"),
+            ("Your browsing information is shared with third parties for advertising purposes. The data is aggregated and shared in an unspecified manner with marketing partners.", "Third Party Sharing/Collection"),
+            ("Users can opt out from the use of personal information for marketing communications via an unsubscribe mechanism. The opt-out is performed through a link provided in electronic communications.", "User Choice/Control"),
+            ("A user can access, edit, or delete personal information in an unspecified manner. Users may request data portability or account deletion through specified contact methods.", "User Access, Edit, & Deletion"),
+            ("Personal information is retained for a stated period of three years. Data retention continues after account termination for legal compliance and regulatory purposes.", "Data Retention"),
+            ("Data is secured using encryption methods specified as industry-standard protocols. Security measures apply to data both in transit and at rest through technical safeguards.", "Data Security"),
+            ("When a change is made to the privacy policy, users are notified via email communication. The notification period is specified as 30 days before material changes take effect.", "Policy Change"),
+            ("The site collects your location information for location-based services. Collection happens automatically when features are accessed, and data usage is specified for service improvement.", "First Party Collection/Use"),
+            ("Analytics information is shared with a named third party for usage analysis. The data is anonymized and collected through tracking technologies for service optimization purposes.", "Third Party Sharing/Collection"),
+            ("Users can configure privacy preferences through account settings interface. Choice is provided via dashboard controls for communication preferences and data usage options.", "User Choice/Control"),
+        ]
+    },
+    {
+        "name": "Dialogue Speaker Classification",
+        "task": "Who's speaking - the user or the assistant?",
+        "vocabulary": ["user", "assistant"],
+        "examples": [
+            ("Can you tell me about the capital of France?", "user"),
+            ("Paris is the capital of France. It's located in the north-central part of the country and has a population of over 2 million people.", "assistant"),
+            ("What's the largest country in South America?", "user"),
+            ("Brazil is the largest country in South America, covering approximately 8.5 million square kilometers.", "assistant"),
+            ("I need directions from Berlin to Munich.", "user"),
+            ("The distance from Berlin to Munich is approximately 585 kilometers. You can travel by train, which takes about 4 hours, or by car via the A9 motorway.", "assistant"),
+            ("Where is Mount Everest located?", "user"),
+            ("Mount Everest is located on the border between Nepal and Tibet (China) in the Himalayan mountain range.", "assistant"),
+            ("Thanks for the information about the Pacific Ocean!", "user"),
+            ("You're welcome! The Pacific Ocean is indeed fascinating as the world's largest ocean. Is there anything else you'd like to know about geography?", "assistant"),
+        ]
+    },
+    {
+        "name": "Book Review Sentiment",
+        "task": "Is this book review positive or negative?",
+        "vocabulary": ["POS", "NEG"],
+        "examples": [
+            ("This book changed my life! The author's insights are profound and the writing is beautiful. Couldn't put it down.", "POS"),
+            ("Waste of money. The plot was predictable and the characters were one-dimensional. Don't bother.", "NEG"),
+            ("Exceptional storytelling! Every chapter kept me engaged. Highly recommend to anyone who loves mystery novels.", "POS"),
+            ("Poorly edited with numerous typos. The story dragged on forever. I couldn't even finish it.", "NEG"),
+            ("A masterpiece! The author brilliantly weaves together multiple storylines. Best book I've read all year.", "POS"),
+            ("Disappointing sequel. Nothing like the first book. The magic is completely gone.", "NEG"),
+            ("Beautifully written with rich, complex characters. This author never disappoints!", "POS"),
+            ("Overhyped and boring. I expected so much more based on the reviews. Total letdown.", "NEG"),
+            ("Couldn't recommend this enough! Perfect blend of humor and heart. Bought copies for all my friends.", "POS"),
+            ("The worst book I've ever attempted to read. Pretentious writing and zero plot.", "NEG"),
+        ]
+    },
+    {
+        "name": "Empathetic Direction Classification",
+        "task": "Is this person sharing something happy or venting?",
+        "vocabulary": ["positive (happy)", "negative (offmychest)"],
+        "examples": [
+            ("I finally got the promotion I've been working towards for years! My family is so proud!", "positive (happy)"),
+            ("I can't believe my best friend betrayed me like this. I feel so alone and hurt.", "negative (offmychest)"),
+            ("Just celebrated our 10th anniversary with a surprise trip to Paris! Life is beautiful!", "positive (happy)"),
+            ("I've been pretending everything is fine but I'm struggling with depression and no one knows.", "negative (offmychest)"),
+            ("My daughter just graduated medical school! I'm bursting with joy and pride!", "positive (happy)"),
+            ("I'm exhausted from taking care of everyone else while my own needs go unmet.", "negative (offmychest)"),
+            ("Woke up to breakfast in bed and flowers from my partner. Feeling so loved and grateful!", "positive (happy)"),
+            ("I put on a brave face but inside I'm falling apart since the divorce.", "negative (offmychest)"),
+            ("Just adopted the sweetest rescue dog! My heart is so full right now!", "positive (happy)"),
+            ("I'm tired of being the only one who cares about keeping our friendship alive.", "negative (offmychest)"),
+        ]
+    },
+    {
+        "name": "Virtual Assistant Action Classification",
+        "task": "What type of action is this in a conversation?",
+        "vocabulary": ["INFORM", "INFORM_INTENT", "OFFER", "REQUEST", "REQUEST_ALTS"],
+        "examples": [
+            ("The meeting is scheduled for 3 PM tomorrow in conference room B.", "INFORM"),
+            ("I'd like to book a flight to New York next Friday.", "INFORM_INTENT"),
+            ("Would you like me to help you find restaurants in that area?", "OFFER"),
+            ("Can you show me the weather forecast for this weekend?", "REQUEST"),
+            ("Do you have any other options besides the morning flights?", "REQUEST_ALTS"),
+            ("Your order has been confirmed and will arrive by Tuesday.", "INFORM"),
+            ("I'm planning to start learning Spanish next month.", "INFORM_INTENT"),
+            ("I can provide you with a list of nearby hotels if that would help.", "OFFER"),
+            ("Please set an alarm for 7 AM tomorrow.", "REQUEST"),
+            ("Are there any restaurants other than Italian in that neighborhood?", "REQUEST_ALTS"),
+        ]
+    },
+    {
+        "name": "Textual Entailment",
+        "task": "Determine the logical relationship between the premise and hypothesis. Answer with: entailment, neutral, or contradiction.",
+        "vocabulary": ["entailment", "neutral", "contradiction"],
+        "examples": [
+            ("Premise: A woman in a red dress is walking down the street.\nHypothesis: A person is walking outside.", "entailment"),
+            ("Premise: Two children are playing soccer in the park.\nHypothesis: The children are swimming in a pool.", "contradiction"),
+            ("Premise: A man is reading a book on a bench.\nHypothesis: The man is reading a mystery novel.", "neutral"),
+            ("Premise: A group of people are standing in line at a coffee shop.\nHypothesis: Some people are waiting to buy drinks.", "entailment"),
+            ("Premise: A dog is running through the grass in a yard.\nHypothesis: The dog is sleeping indoors.", "contradiction"),
+            ("Premise: Three friends are having lunch at a restaurant.\nHypothesis: The friends are celebrating someone's birthday.", "neutral"),
+            ("Premise: A young girl is riding her bicycle on the sidewalk.\nHypothesis: A child is on a bike.", "entailment"),
+            ("Premise: An old man is sitting on a park bench feeding pigeons.\nHypothesis: The man is jogging around the track.", "contradiction"),
+            ("Premise: A couple is walking hand in hand through the mall.\nHypothesis: The couple is shopping for wedding rings.", "neutral"),
+            ("Premise: Students are sitting in a classroom taking an exam.\nHypothesis: People are writing on paper.", "entailment"),
+        ]
+    },
+    {
+        "name": "Multiple Choice Entailment",
+        "task": "In this task, you're given a statement and three sentences as choices. Your job is to determine which sentence can be inferred from the statement. Indicate your answer as 1, 2, or 3 corresponding to the choice number of the selected sentence.",
+        "vocabulary": ["1", "2", "3"],
+        "examples": [
+            ("Statement: The chef is preparing dinner in the kitchen. Choices: 1. Someone is cooking food. 2. The chef is washing dishes. 3. Dinner has already been served.", "1"),
+            ("Statement: The library closes at 9 PM on weekdays. Choices: 1. The library is open 24 hours. 2. You cannot enter the library after 9 PM on Tuesday. 3. The library has extended hours on weekends.", "2"),
+            ("Statement: She won first place in the marathon race. Choices: 1. She finished last in the race. 2. She completed the marathon successfully. 3. She was disqualified from the race.", "2"),
+            ("Statement: The concert was cancelled due to bad weather. Choices: 1. The concert happened as scheduled. 2. Weather conditions prevented the concert. 3. The venue was too small for the concert.", "2"),
+            ("Statement: All students must complete their homework before class. Choices: 1. Some students don't need to do homework. 2. Homework is optional for students. 3. Students are required to finish homework prior to class.", "3"),
+            ("Statement: The train arrives at the station every hour. Choices: 1. The train comes once per hour. 2. The train never arrives on time. 3. Multiple trains arrive simultaneously.", "1"),
+            ("Statement: He speaks three languages fluently. Choices: 1. He only knows one language. 2. He can communicate well in three languages. 3. He is learning a fourth language.", "2"),
+            ("Statement: The store is closed on Sundays. Choices: 1. You can shop there every day. 2. The store operates seven days a week. 3. Sunday is not a business day for the store.", "3"),
+            ("Statement: She graduated with honors from university. Choices: 1. She dropped out of school. 2. She achieved high academic performance. 3. She failed her final exams.", "2"),
+            ("Statement: The movie starts at 7:30 PM sharp. Choices: 1. The movie begins exactly at 7:30 PM. 2. The movie might start around 8 PM. 3. The movie time is flexible.", "1"),
+        ]
+    },
+]
