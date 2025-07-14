@@ -47,7 +47,7 @@ The DSRU uses a three-input architecture:
 These are projected through sparse layers into a deep reasoning network with:
 - 1024-dimensional input/output (BGE-large embedding space)
 - 8192-dimensional hidden layers
-- 14 total hidden layers with residual connections
+- 14 total layers with residual connections
 - ~1.09B parameters
 
 ## Files
@@ -56,7 +56,7 @@ These are projected through sparse layers into a deep reasoning network with:
 - `model.py` - DSRU model implementation
 - `vocabulary_helpers.py` - Embedding utilities
 - `inference_questions.py` - Test cases and benchmarks
-- `model.pt` - Trained model checkpoint (download separately)
+- `model.pt` - Trained model checkpoint [Google Drive](https://drive.google.com/file/d/1oZarHzA7PwSij6aBGOQaEHCnB100St3H/view?usp=sharing)
 
 ## Performance
 
