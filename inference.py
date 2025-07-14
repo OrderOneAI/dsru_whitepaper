@@ -36,8 +36,7 @@ from inference_questions import TEST_CASES
 model_config = {
     'input_dim': 1024,
     'hidden_dim': 8192,
-    'n_layers': 16,
-    'dropout': 0.0
+    'n_layers': 16
 }
 
 
@@ -59,8 +58,7 @@ def load_model(checkpoint_path: str, device: str = 'cuda') -> ScaledVectorReason
     model = ScaledVectorReasoningEngine(
         vector_dim=model_config['input_dim'],
         hidden_dim=model_config['hidden_dim'],
-        num_layers=model_config['n_layers'],
-        dropout=0.0
+        num_layers=model_config['n_layers']
     )
     
     checkpoint = torch.load(checkpoint_path, map_location=device)
