@@ -5,9 +5,11 @@ This repository contains the reference implementation of the Direct Semantic Rea
 ## Overview
 
 DSRU processes entire concepts and tasks in a single forward pass without tokens or attention mechanisms, achieving:
-- **93x faster inference** than comparable transformer models
+- **93x faster inference** than comparably performing transformer models
 - **1ms inference time** for complex reasoning tasks
 - **77.7% average accuracy** across 13 diverse classification tasks
+
+Note that this is NOT a generative model, but a predictive one. The key difference between this and typical/earlier predictive models is that it seems capable of reasoning in a fashion that's somewhat similar to LLMs (achieving 80% on a logical entailment task after an hour of training on a 4060 Ti), and is promptable. The white paper goes into more detail about the model's workings and capabilities, while this repository demonstrates its application in a promptable classifier.
 
 ## Key Innovation
 
