@@ -224,38 +224,38 @@ TEST_CASES = [
             ("Are there any restaurants other than Italian in that neighborhood?", "REQUEST_ALTS"),
         ]
     },
-    {
-        "name": "Textual Entailment",
-        "task": "Determine the logical relationship between the premise and hypothesis. Answer with: entailment, neutral, or contradiction.",
-        "vocabulary": ["entailment", "neutral", "contradiction"],
-        "examples": [
-            ("Premise: A woman in a red dress is walking down the street.\nHypothesis: A person is walking outside.", "entailment"),
-            ("Premise: Two children are playing soccer in the park.\nHypothesis: The children are swimming in a pool.", "contradiction"),
-            ("Premise: A man is reading a book on a bench.\nHypothesis: The man is reading a mystery novel.", "neutral"),
-            ("Premise: A group of people are standing in line at a coffee shop.\nHypothesis: Some people are waiting to buy drinks.", "entailment"),
-            ("Premise: A dog is running through the grass in a yard.\nHypothesis: The dog is sleeping indoors.", "contradiction"),
-            ("Premise: Three friends are having lunch at a restaurant.\nHypothesis: The friends are celebrating someone's birthday.", "neutral"),
-            ("Premise: A young girl is riding her bicycle on the sidewalk.\nHypothesis: A child is on a bike.", "entailment"),
-            ("Premise: An old man is sitting on a park bench feeding pigeons.\nHypothesis: The man is jogging around the track.", "contradiction"),
-            ("Premise: A couple is walking hand in hand through the mall.\nHypothesis: The couple is shopping for wedding rings.", "neutral"),
-            ("Premise: Students are sitting in a classroom taking an exam.\nHypothesis: People are writing on paper.", "entailment"),
-        ]
-    },
-    {
-        "name": "Multiple Choice Entailment",
-        "task": "In this task, you're given a statement and three sentences as choices. Your job is to determine which sentence can be inferred from the statement. Indicate your answer as 1, 2, or 3 corresponding to the choice number of the selected sentence.",
-        "vocabulary": ["1", "2", "3"],
-        "examples": [
-            ("Statement: The chef is preparing dinner in the kitchen. Choices: 1. Someone is cooking food. 2. The chef is washing dishes. 3. Dinner has already been served.", "1"),
-            ("Statement: The library closes at 9 PM on weekdays. Choices: 1. The library is open 24 hours. 2. You cannot enter the library after 9 PM on Tuesday. 3. The library has extended hours on weekends.", "2"),
-            ("Statement: She won first place in the marathon race. Choices: 1. She finished last in the race. 2. She completed the marathon successfully. 3. She was disqualified from the race.", "2"),
-            ("Statement: The concert was cancelled due to bad weather. Choices: 1. The concert happened as scheduled. 2. Weather conditions prevented the concert. 3. The venue was too small for the concert.", "2"),
-            ("Statement: All students must complete their homework before class. Choices: 1. Some students don't need to do homework. 2. Homework is optional for students. 3. Students are required to finish homework prior to class.", "3"),
-            ("Statement: The train arrives at the station every hour. Choices: 1. The train comes once per hour. 2. The train never arrives on time. 3. Multiple trains arrive simultaneously.", "1"),
-            ("Statement: He speaks three languages fluently. Choices: 1. He only knows one language. 2. He can communicate well in three languages. 3. He is learning a fourth language.", "2"),
-            ("Statement: The store is closed on Sundays. Choices: 1. You can shop there every day. 2. The store operates seven days a week. 3. Sunday is not a business day for the store.", "3"),
-            ("Statement: She graduated with honors from university. Choices: 1. She dropped out of school. 2. She achieved high academic performance. 3. She failed her final exams.", "2"),
-            ("Statement: The movie starts at 7:30 PM sharp. Choices: 1. The movie begins exactly at 7:30 PM. 2. The movie might start around 8 PM. 3. The movie time is flexible.", "1"),
-        ]
-    },
+    # {
+    #     "name": "Textual Entailment",
+    #     "task": "Determine the logical relationship between the premise and hypothesis. Answer with: entailment, neutral, or contradiction.",
+    #     "vocabulary": ["entailment", "neutral", "contradiction"],
+    #     "examples": [
+    #         ("Premise: A woman in a red dress is walking down the street.\nHypothesis: A person is walking outside.", "entailment"),
+    #         ("Premise: Two children are playing soccer in the park.\nHypothesis: The children are swimming in a pool.", "contradiction"),
+    #         ("Premise: A man is reading a book on a bench.\nHypothesis: The man is reading a mystery novel.", "neutral"),
+    #         ("Premise: A group of people are standing in line at a coffee shop.\nHypothesis: Some people are waiting to buy drinks.", "entailment"),
+    #         ("Premise: A dog is running through the grass in a yard.\nHypothesis: The dog is sleeping indoors.", "contradiction"),
+    #         ("Premise: Three friends are having lunch at a restaurant.\nHypothesis: The friends are celebrating someone's birthday.", "neutral"),
+    #         ("Premise: A young girl is riding her bicycle on the sidewalk.\nHypothesis: A child is on a bike.", "entailment"),
+    #         ("Premise: An old man is sitting on a park bench feeding pigeons.\nHypothesis: The man is jogging around the track.", "contradiction"),
+    #         ("Premise: A couple is walking hand in hand through the mall.\nHypothesis: The couple is shopping for wedding rings.", "neutral"),
+    #         ("Premise: Students are sitting in a classroom taking an exam.\nHypothesis: People are writing on paper.", "entailment"),
+    #     ]
+    # },
+    # {
+    #     "name": "Multiple Choice Entailment",
+    #     "task": "In this task, you're given a statement and three sentences as choices. Your job is to determine which sentence can be inferred from the statement. Indicate your answer as 1, 2, or 3 corresponding to the choice number of the selected sentence.",
+    #     "vocabulary": ["1", "2", "3"],
+    #     "examples": [
+    #         ("Statement: The chef is preparing dinner in the kitchen. Choices: 1. Someone is cooking food. 2. The chef is washing dishes. 3. Dinner has already been served.", "1"),
+    #         ("Statement: The library closes at 9 PM on weekdays. Choices: 1. The library is open 24 hours. 2. You cannot enter the library after 9 PM on Tuesday. 3. The library has extended hours on weekends.", "2"),
+    #         ("Statement: She won first place in the marathon race. Choices: 1. She finished last in the race. 2. She completed the marathon successfully. 3. She was disqualified from the race.", "2"),
+    #         ("Statement: The concert was cancelled due to bad weather. Choices: 1. The concert happened as scheduled. 2. Weather conditions prevented the concert. 3. The venue was too small for the concert.", "2"),
+    #         ("Statement: All students must complete their homework before class. Choices: 1. Some students don't need to do homework. 2. Homework is optional for students. 3. Students are required to finish homework prior to class.", "3"),
+    #         ("Statement: The train arrives at the station every hour. Choices: 1. The train comes once per hour. 2. The train never arrives on time. 3. Multiple trains arrive simultaneously.", "1"),
+    #         ("Statement: He speaks three languages fluently. Choices: 1. He only knows one language. 2. He can communicate well in three languages. 3. He is learning a fourth language.", "2"),
+    #         ("Statement: The store is closed on Sundays. Choices: 1. You can shop there every day. 2. The store operates seven days a week. 3. Sunday is not a business day for the store.", "3"),
+    #         ("Statement: She graduated with honors from university. Choices: 1. She dropped out of school. 2. She achieved high academic performance. 3. She failed her final exams.", "2"),
+    #         ("Statement: The movie starts at 7:30 PM sharp. Choices: 1. The movie begins exactly at 7:30 PM. 2. The movie might start around 8 PM. 3. The movie time is flexible.", "1"),
+    #     ]
+    # },
 ]
