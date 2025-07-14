@@ -47,7 +47,7 @@ The DSRU uses a three-input architecture:
 These are projected through sparse layers into a deep reasoning network with:
 - 1024-dimensional input/output (BGE-large embedding space)
 - 8192-dimensional hidden layers
-- 14 total layers with residual connections
+- 14 total hidden layers with residual connections
 - ~1.09B parameters
 
 ## Files
