@@ -22,9 +22,12 @@ Instead of processing sequences token-by-token with quadratic attention complexi
 
 ## Installation
 
+1. Clone this repository
+2. Install dependencies:
 ```bash
-pip install torch sentence-transformers numpy
+pip install -r requirements.txt
 ```
+3. Download the model checkpoint from [Google Drive](https://drive.google.com/file/d/1oZarHzA7PwSij6aBGOQaEHCnB100St3H/view?usp=sharing) and place it as `model.pt`
 
 ## Quick Start
 
@@ -53,7 +56,7 @@ These are projected through sparse layers into a deep reasoning network with:
 - `model.py` - DSRU model implementation
 - `vocabulary_helpers.py` - Embedding utilities
 - `inference_questions.py` - Test cases and benchmarks
-- `kept_models/checkpoint_latest.pt` - Trained model checkpoint
+- `model.pt` - Trained model checkpoint (download separately)
 
 ## Performance
 
