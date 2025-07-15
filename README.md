@@ -34,6 +34,7 @@ pip install -r requirements.txt
 ## Quick Start
 
 ```python
+python python download_model.py
 python inference.py --batch 32
 ```
 
@@ -55,6 +56,7 @@ These are projected through sparse layers into a deep reasoning network with:
 ## Files
 
 - `inference.py` - Main inference script with timing benchmarks
+- `llama_inference.py` - Zephyr inference script with timing benchmarks
 - `model.py` - DSRU model implementation
 - `vocabulary_helpers.py` - Embedding utilities
 - `inference_questions.py` - Test cases and benchmarks
